@@ -1,6 +1,5 @@
 #nullable enable
 using Players;
-using System;
 using System.Collections.Generic;
 using UI;
 using Unity.Netcode;
@@ -8,7 +7,7 @@ using UnityEngine;
 using Utils;
 
 
-public class Game : MonoBehaviour
+public class Game : NetworkBehaviour
 {
     [SerializeField] private WinScreen winScreen = null!;
     [SerializeField] private NetworkManager network = null!;
@@ -25,6 +24,10 @@ public class Game : MonoBehaviour
     private void OnDestroy()
     {
         network.OnServerStarted -= NetworkOnOnServerStarted;
+        if (network.IsServer)
+        {
+            network.EnsureNotNull().OnClientConnectedCallback -= NetworkOnOnClientConnectedCallback;
+        }
     }
 
 

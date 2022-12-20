@@ -1,10 +1,11 @@
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.Events;
 
 
 namespace Players
 {
-    public class Health : MonoBehaviour
+    public class Health : NetworkBehaviour
     {
         public UnityEvent death = new();
         [SerializeField] private float amount;
@@ -20,6 +21,7 @@ namespace Players
             {
                 death?.Invoke();
                 gameObject.SetActive(false);
+                GetComponent<NetworkObject>()!.Despawn();
             }
         }
     }

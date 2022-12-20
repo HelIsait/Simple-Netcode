@@ -1,5 +1,4 @@
 #nullable enable
-
 using Players;
 using Unity.Netcode;
 using Unity.Netcode.Components;
@@ -30,10 +29,13 @@ public class Bullet : NetworkBehaviour
 
     private void OnCollisionEnter2D(Collision2D col)
     {
-        if (col.collider!.TryGetComponent(out Health health))
+        if (IsServer)
         {
-            health!.Damage(damage);
-            GetComponent<NetworkObject>()!.Despawn();
+            if (col.collider!.TryGetComponent(out Health health))
+            {
+                health!.Damage(damage);
+                GetComponent<NetworkObject>()!.Despawn();
+            }
         }
     }
 }
