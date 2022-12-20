@@ -2,6 +2,7 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using Utils;
 
 
 namespace Players
@@ -14,6 +15,8 @@ namespace Players
         [SerializeField] private float jumpPower = 20;
         private new Rigidbody2D rigidbody2D = null!;
         private IInput input = new PlugInput();
+        [Header("Shooting")] [SerializeField] private Bullet bulletPrefab = null!;
+        [SerializeField] private Transform shootPoint = null!;
         [SerializeField] private NetworkVariable<float> inputDirection = new(
             0,
             NetworkVariableReadPermission.Everyone,
@@ -30,6 +33,8 @@ namespace Players
         private void Awake()
         {
             rigidbody2D = GetComponent<Rigidbody2D>()!;
+            bulletPrefab.EnsureNotNull();
+            shootPoint.EnsureNotNull();
         }
 
 
@@ -43,12 +48,25 @@ namespace Players
         }
 
 
+        [ServerRpc]
+        private void ShootServerRpc()
+        {
+            Debug.Log("Shoot on server");
+            var bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity)!;
+            bullet.Spawn(shootPoint.forward);
+        }
+
+
         private void Update()
         {
             if (IsOwner)
             {
                 inputDirection.Value = input.Direction();
                 inputJump.Value = input.Jump();
+                if (input.Shoot())
+                {
+                    ShootServerRpc();
+                }
             }
 
             if (IsServer)
