@@ -10,6 +10,9 @@ namespace Players
         [SerializeField] private float amount;
 
 
+        public bool Alive => amount > 0;
+
+
         public void Damage(float value)
         {
             amount -= value;
