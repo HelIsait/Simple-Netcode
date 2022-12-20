@@ -1,8 +1,10 @@
 #nullable enable
+using Players.Bullets;
 using Players.ChangeColor;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
+using Utils;
 
 
 namespace Players
@@ -11,7 +13,9 @@ namespace Players
     [RequireComponent(typeof(NetworkTransform))]
     public class Player : NetworkBehaviour
     {
-        [SerializeField] private SpriteRenderer spriteRenderer = null!;
+        [Header("Shooting")] [SerializeField] private Bullet bulletPrefab = null!;
+        [SerializeField] private Transform shootPoint = null!;
+        [Space] [SerializeField] private SpriteRenderer spriteRenderer = null!;
         [SerializeField] private NetworkVariable<Color> currentColor = new(
             readPerm: NetworkVariableReadPermission.Everyone,
             writePerm: NetworkVariableWritePermission.Owner
@@ -19,6 +23,11 @@ namespace Players
         [SerializeField] private float speed = 10;
         [SerializeField] private float jumpPower = 20;
         private new Rigidbody2D rigidbody2D = null!;
+        [SerializeField] private NetworkVariable<float> health = new(
+            value: 100,
+            readPerm: NetworkVariableReadPermission.Everyone,
+            writePerm: NetworkVariableWritePermission.Server
+        );
         [SerializeField] private NetworkVariable<float> inputDirection = new(
             0,
             NetworkVariableReadPermission.Everyone,
@@ -34,23 +43,33 @@ namespace Players
         private readonly IChangeColor changeColor = new KeyboardChangeColor();
 
 
+        public NetworkVariable<float> Health => health;
+
+
+        public NetworkVariable<Color> Color => currentColor;
+
+
         private void Awake()
         {
             rigidbody2D = GetComponent<Rigidbody2D>()!;
             spriteRenderer = GetComponent<SpriteRenderer>()!;
+
+            bulletPrefab.EnsureNotNull();
+            shootPoint.EnsureNotNull();
         }
 
 
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
+            currentColor.OnValueChanged += OnColorChanged;
             if (IsOwner)
             {
                 input = new KeyboardInput();
+                currentColor.Value = Random.ColorHSV();
             }
 
-            currentColor.OnValueChanged += OnColorChanged;
-            OnColorChanged(new Color(), currentColor.Value); 
+            spriteRenderer.color = currentColor.Value;
         }
 
 
@@ -67,6 +86,14 @@ namespace Players
         }
 
 
+        [ServerRpc(RequireOwnership = false)]
+        private void ShootServerRpc()
+        {
+            var bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity)!;
+            bullet.Spawn(shootPoint.right);
+        }
+
+
         private void Update()
         {
             if (IsOwner)
@@ -74,6 +101,10 @@ namespace Players
                 inputDirection.Value = input.Direction();
                 inputJump.Value = input.Jump();
                 currentColor.Value = changeColor.Change(currentColor.Value);
+                if (input.Shoot())
+                {
+                    ShootServerRpc();
+                }
             }
 
             if (IsServer)
@@ -91,6 +122,12 @@ namespace Players
                     rigidbody2D.AddForce(Vector2.up * jumpPower);
                 }
             }
+        }
+
+
+        public void ApplyDamage(float amount)
+        {
+            health.Value -= amount;
         }
     }
 }
