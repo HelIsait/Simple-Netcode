@@ -1,4 +1,5 @@
 #nullable enable
+using Players.ChangeColor;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
@@ -10,10 +11,14 @@ namespace Players
     [RequireComponent(typeof(NetworkTransform))]
     public class Player : NetworkBehaviour
     {
+        [SerializeField] private SpriteRenderer spriteRenderer = null!;
+        [SerializeField] private NetworkVariable<Color> currentColor = new(
+            readPerm: NetworkVariableReadPermission.Everyone,
+            writePerm: NetworkVariableWritePermission.Owner
+        );
         [SerializeField] private float speed = 10;
         [SerializeField] private float jumpPower = 20;
         private new Rigidbody2D rigidbody2D = null!;
-        private IInput input = new PlugInput();
         [SerializeField] private NetworkVariable<float> inputDirection = new(
             0,
             NetworkVariableReadPermission.Everyone,
@@ -25,11 +30,14 @@ namespace Players
             NetworkVariableWritePermission.Owner
         );
         private readonly Quaternion lookAdditional = Quaternion.Euler(0, -90, 0);
+        private IInput input = new PlugInput();
+        private readonly IChangeColor changeColor = new KeyboardChangeColor();
 
 
         private void Awake()
         {
             rigidbody2D = GetComponent<Rigidbody2D>()!;
+            spriteRenderer = GetComponent<SpriteRenderer>()!;
         }
 
 
@@ -40,6 +48,22 @@ namespace Players
             {
                 input = new KeyboardInput();
             }
+
+            currentColor.OnValueChanged += OnColorChanged;
+            OnColorChanged(new Color(), currentColor.Value); 
+        }
+
+
+        public override void OnNetworkDespawn()
+        {
+            base.OnNetworkDespawn();
+            currentColor.OnValueChanged -= OnColorChanged;
+        }
+
+
+        private void OnColorChanged(Color previousColor, Color newColor)
+        {
+            spriteRenderer.color = newColor;
         }
 
 
@@ -49,6 +73,7 @@ namespace Players
             {
                 inputDirection.Value = input.Direction();
                 inputJump.Value = input.Jump();
+                currentColor.Value = changeColor.Change(currentColor.Value);
             }
 
             if (IsServer)
