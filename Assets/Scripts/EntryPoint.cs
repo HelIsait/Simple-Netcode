@@ -1,43 +1,44 @@
 #nullable enable
 using System;
-using UI;
 using Unity.Netcode;
 using UnityEngine;
 
-
-public class EntryPoint : MonoBehaviour
+namespace Stanislav.Network.From.Nick
 {
-    [SerializeField] private NetworkButtons networkButtons = null!;
-    [SerializeField] private NetworkManager network = null!;
-
-
-    private void Start()
+    public class EntryPoint : MonoBehaviour
     {
-        if (network == null)
-        {
-            throw new NullReferenceException(nameof(NetworkManager));
-        }
+        [SerializeField] private NetworkButtons networkButtons = null!;
+        [SerializeField] private NetworkManager network = null!;
 
-        if (networkButtons == null)
-        {
-            throw new NullReferenceException(nameof(NetworkButtons));
-        }
 
-        networkButtons.request.AddListener(mode =>
+        private void Start()
         {
-            switch (mode)
+            if (network == null)
             {
-                case NetworkButton.Mode.Host:
-                    network.StartHost();
-                    break;
-                case NetworkButton.Mode.Client:
-                    network.StartClient();
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
+                throw new NullReferenceException(nameof(NetworkManager));
             }
 
-            networkButtons.Hide();
-        });
+            if (networkButtons == null)
+            {
+                throw new NullReferenceException(nameof(NetworkButtons));
+            }
+
+            networkButtons.request.AddListener(mode =>
+            {
+                switch (mode)
+                {
+                    case NetworkButton.Mode.Host:
+                        network.StartHost();
+                        break;
+                    case NetworkButton.Mode.Client:
+                        network.StartClient();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                networkButtons.Hide();
+            });
+        }
     }
 }

@@ -2,7 +2,7 @@
 using System;
 
 
-namespace Utils
+namespace Stanislav.Network.From.Nick
 {
     public static class Util
     {

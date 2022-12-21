@@ -2,10 +2,9 @@
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
-using Utils;
 
 
-namespace Players
+namespace Stanislav.Network.From.Nick
 {
     [RequireComponent(typeof(Rigidbody2D))]
     [RequireComponent(typeof(NetworkTransform))]
@@ -15,7 +14,10 @@ namespace Players
         [SerializeField] private float jumpPower = 20;
         private new Rigidbody2D rigidbody2D = null!;
         private IInput input = new PlugInput();
-        [Header("Shooting")] [SerializeField] private Bullet bulletPrefab = null!;
+        
+        [Header("Shooting")]
+        [SerializeField] private Bullet[] bulletPrefabs = { };
+        
         [SerializeField] private Transform shootPoint = null!;
         [SerializeField] private NetworkVariable<float> inputDirection = new(
             0,
@@ -28,12 +30,10 @@ namespace Players
             NetworkVariableWritePermission.Owner
         );
         private readonly Quaternion lookAdditional = Quaternion.Euler(0, -90, 0);
-
-
         private void Awake()
         {
             rigidbody2D = GetComponent<Rigidbody2D>()!;
-            bulletPrefab.EnsureNotNull();
+            bulletPrefabs.EnsureNotNull();
             shootPoint.EnsureNotNull();
         }
 
@@ -51,9 +51,12 @@ namespace Players
         [ServerRpc]
         private void ShootServerRpc()
         {
-            Debug.Log("Shoot on server");
-            var bullet = Instantiate(bulletPrefab, shootPoint.position, Quaternion.identity)!;
-            bullet.Spawn(shootPoint.forward);
+            Instantiate(
+                    bulletPrefabs[Random.Range(0, bulletPrefabs.Length)],
+                    shootPoint.position,
+                    Quaternion.identity)
+                    .Spawn(shootPoint.forward
+                );
         }
 
 

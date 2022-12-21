@@ -1,7 +1,6 @@
 using UnityEngine;
 
-
-namespace Players
+namespace Stanislav.Network.From.Nick
 {
     public class KeyboardInput : IInput
     {

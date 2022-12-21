@@ -1,40 +1,43 @@
 #nullable enable
-using Players;
 using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
 
-
-[RequireComponent(typeof(NetworkObject))]
-[RequireComponent(typeof(NetworkTransform))]
-public class Bullet : NetworkBehaviour
+namespace Stanislav.Network.From.Nick
 {
-    [SerializeField] private float damage;
-    [SerializeField] private float speed;
-    [SerializeField] private Vector3 direction;
 
 
-    private void Update()
+    [RequireComponent(typeof(NetworkObject))]
+    [RequireComponent(typeof(NetworkTransform))]
+    public class Bullet : NetworkBehaviour
     {
-        transform.Translate(direction * (Time.deltaTime * speed));
-    }
+        [SerializeField] private float damage;
+        [SerializeField] private float speed;
+        [SerializeField] private Vector3 direction;
 
 
-    public void Spawn(Vector3 direct)
-    {
-        direction = direct.normalized;
-        GetComponent<NetworkObject>()!.Spawn(true);
-    }
-
-
-    private void OnCollisionEnter2D(Collision2D col)
-    {
-        if (IsServer)
+        private void Update()
         {
-            if (col.collider!.TryGetComponent(out Health health))
+            transform.Translate(direction * (Time.deltaTime * speed));
+        }
+
+
+        public void Spawn(Vector3 direct)
+        {
+            direction = direct.normalized;
+            GetComponent<NetworkObject>()!.Spawn(true);
+        }
+
+
+        private void OnCollisionEnter2D(Collision2D col)
+        {
+            if (IsServer)
             {
-                health!.Damage(damage);
-                GetComponent<NetworkObject>()!.Despawn();
+                if (col.collider!.TryGetComponent(out Health health))
+                {
+                    health!.Damage(damage);
+                    GetComponent<NetworkObject>()!.Despawn();
+                }
             }
         }
     }

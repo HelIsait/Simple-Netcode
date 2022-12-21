@@ -1,73 +1,74 @@
 #nullable enable
-using Players;
 using System.Collections.Generic;
-using UI;
 using Unity.Netcode;
 using UnityEngine;
-using Utils;
 
-
-public class Game : NetworkBehaviour
+namespace Stanislav.Network.From.Nick
 {
-    [SerializeField] private WinScreen winScreen = null!;
-    [SerializeField] private NetworkManager network = null!;
-    [Header("Debug")] [SerializeField] private List<Player> registred = new();
 
 
-    private void Awake()
+    public class Game : NetworkBehaviour
     {
-        winScreen.EnsureNotNull();
-        network.OnServerStarted += NetworkOnOnServerStarted;
-    }
+        [SerializeField] private WinScreen winScreen = null!;
+        [SerializeField] private NetworkManager network = null!;
+        [Header("Debug")] [SerializeField] private List<Player> registred = new();
 
 
-    private void OnDestroy()
-    {
-        network.OnServerStarted -= NetworkOnOnServerStarted;
-        if (network.IsServer)
+        private void Awake()
         {
-            network.EnsureNotNull().OnClientConnectedCallback -= NetworkOnOnClientConnectedCallback;
+            winScreen.EnsureNotNull();
+            network.OnServerStarted += NetworkOnOnServerStarted;
         }
-    }
 
 
-    private void NetworkOnOnServerStarted()
-    {
-        if (network.IsServer)
+        private void OnDestroy()
         {
-            foreach (var (key, value) in network.ConnectedClients!)
+            network.OnServerStarted -= NetworkOnOnServerStarted;
+            if (network.IsServer)
             {
-                NetworkOnOnClientConnectedCallback(key);
+                network.EnsureNotNull().OnClientConnectedCallback -= NetworkOnOnClientConnectedCallback;
             }
-
-            network.EnsureNotNull().OnClientConnectedCallback += NetworkOnOnClientConnectedCallback;
         }
-    }
 
 
-    [ClientRpc]
-    private void ShowScreenClientRpc(string message)
-    {
-        winScreen.Show(message);
-    }
-
-
-    private void NetworkOnOnClientConnectedCallback(ulong obj)
-    {
-        var player = network.ConnectedClients![obj]!.PlayerObject.GetComponent<Player>();
-        registred.Add(player);
-        player!.GetComponent<Health>()!.death.AddListener(() =>
+        private void NetworkOnOnServerStarted()
         {
-            foreach (var p in registred)
+            if (network.IsServer)
             {
-                if (p.GetComponent<Health>()!.Alive)
+                foreach (var (key, value) in network.ConnectedClients!)
                 {
-                    ShowScreenClientRpc(p.name);
-                    return;
+                    NetworkOnOnClientConnectedCallback(key);
                 }
-            }
 
-            ShowScreenClientRpc("No winners");
-        });
+                network.EnsureNotNull().OnClientConnectedCallback += NetworkOnOnClientConnectedCallback;
+            }
+        }
+
+
+        [ClientRpc]
+        private void ShowScreenClientRpc(string message)
+        {
+            winScreen.Show(message);
+        }
+
+
+        private void NetworkOnOnClientConnectedCallback(ulong obj)
+        {
+            var player = network.ConnectedClients![obj]!.PlayerObject.GetComponent<Player>();
+            registred.Add(player);
+            player!.GetComponent<Health>()!.death.AddListener(() =>
+            {
+                foreach (var p in registred)
+                {
+                    if (p.GetComponent<Health>()!.Alive)
+                    {
+                        ShowScreenClientRpc(p.name);
+                        return;
+                    }
+                }
+
+                ShowScreenClientRpc("No winners");
+            });
+        }
     }
 }

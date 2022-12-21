@@ -3,25 +3,29 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-
-[RequireComponent(typeof(Button))]
-public class NetworkButton : MonoBehaviour
+namespace Stanislav.Network.From.Nick
 {
-    public UnityEvent<Mode> request = new();
-    [SerializeField] private Mode mode;
-    private Button button = null!;
 
 
-    private void Awake()
+    [RequireComponent(typeof(Button))]
+    public class NetworkButton : MonoBehaviour
     {
-        button = GetComponent<Button>()!;
-        button.onClick!.AddListener(() => request?.Invoke(mode));
-    }
+        public UnityEvent<Mode> request = new();
+        [SerializeField] private Mode mode;
+        private Button button = null!;
 
 
-    public enum Mode
-    {
-        Host,
-        Client
+        private void Awake()
+        {
+            button = GetComponent<Button>()!;
+            button.onClick!.AddListener(() => request?.Invoke(mode));
+        }
+
+
+        public enum Mode
+        {
+            Host,
+            Client
+        }
     }
 }

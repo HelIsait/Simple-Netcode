@@ -1,4 +1,4 @@
-namespace Players
+namespace Stanislav.Network.From.Nick
 {
     public class PlugInput : IInput
     {

@@ -1,12 +1,10 @@
-using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Utils;
 
 
-namespace UI
+namespace Stanislav.Network.From.Nick
 {
     public class WinScreen : MonoBehaviour
     {

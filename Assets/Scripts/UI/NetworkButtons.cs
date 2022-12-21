@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.Events;
 
 
-namespace UI
+namespace Stanislav.Network.From.Nick
 {
     public class NetworkButtons : MonoBehaviour
     {
