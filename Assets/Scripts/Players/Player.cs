@@ -55,8 +55,7 @@ namespace Stanislav.Network.From.Nick
                     bulletPrefabs[Random.Range(0, bulletPrefabs.Length)],
                     shootPoint.position,
                     Quaternion.identity)
-                    .Spawn(shootPoint.forward
-                );
+                    .Spawn(shootPoint.forward);
         }
 
 
